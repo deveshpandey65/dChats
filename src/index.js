@@ -18,12 +18,13 @@ root.render(
         {/* Main Layout */}
         <Route path="/" element={<App />}>
           {/* Nested Routes that render inside <Outlet /> in App.js */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="chat" element={<Message />} />
           <Route path="add-friend" element={<AddFriend />} />
           <Route path='/profile' element={<Profile/>}/>
         </Route>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        
         
       </Routes>
     </Router>
