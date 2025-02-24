@@ -4,6 +4,7 @@ import logo from "../assets/img/logo.PNG";
 import { FaPaperclip, FaPaperPlane } from "react-icons/fa";
 import axios from "axios";
 import { Realtime } from "ably";
+import Loading from "./Loading";
 
 const ably = new Realtime("FbmcJA.AarP_A:4D7MBgZkSEhe1B6QQ6-Q9Zg4QkF23bAtwwdAx1vBV08");
 
@@ -12,6 +13,7 @@ export default function DetailChat({ person }) {
     const [show, setShow] = useState(false);
     const [message, setMessage] = useState('');
     const messagesEndRef = useRef(null);
+    const [loading,setLoading]=useState(false)
 
     const userId = localStorage.getItem("userId");
 
@@ -26,6 +28,7 @@ export default function DetailChat({ person }) {
 
         const key = person.type === "group" ? "groupId" : "friendId";
         const requestData = { userId, [key]: person._id };
+        setLoading(true)
 
         try {
             const response = await axios.post(
@@ -35,6 +38,7 @@ export default function DetailChat({ person }) {
             );
 
             setMessages(response.data.messages || []);
+            setLoading(false)
         } catch (error) {
             console.error("Error fetching messages:", error);
             setMessages([]);
@@ -118,18 +122,21 @@ export default function DetailChat({ person }) {
                         </div>
                     </div>
 
-                    <div className="bg-gray-200 h-full w-full overflow-y-scroll p-4">
-                        {messages.map((msg, index) => (
-                            <div key={index} className={`flex w-full mb-2 ${msg.senderId === userId ? "justify-end" : "justify-start"}`}>
-                                <div className={`max-w-[70%] w-auto p-3 shadow-md break-words text-sm ${msg.senderId === userId ? "bg-cyan-500 text-white rounded-l-lg rounded-tr-xl" : "bg-white text-black rounded-r-lg rounded-tl-xl"}`}>
-                                    {msg.message}
+                    {
+                        loading ? <> <Loading/></> : <div className="bg-gray-200 h-full w-full overflow-y-scroll p-4">
+                            {messages.map((msg, index) => (
+                                <div key={index} className={`flex w-full mb-2 ${msg.senderId === userId ? "justify-end" : "justify-start"}`}>
+                                    <div className={`max-w-[70%] w-auto p-3 shadow-md break-words text-sm ${msg.senderId === userId ? "bg-cyan-500 text-white rounded-l-lg rounded-tr-xl" : "bg-white text-black rounded-r-lg rounded-tl-xl"}`}>
+                                        {msg.message}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                        <div ref={messagesEndRef} />
-                    </div>
+                            ))}
+                            <div ref={messagesEndRef} />
+                        </div>
+                    }
 
-                    <div className="h-20 bg-white flex items-center sm:px-4 border-t shadow-md overflow-x-scroll sm:overflow-hidden">
+                    <div className="absolute bottom-0 left-0 w-full h-20 bg-white flex items-center justify-end sm:px-4 border-t shadow-md">
+
                         <label className="text-gray-500 hover:text-gray-700 cursor-pointer sm:p-2">
                             <input type="file" className="hidden" />
                             <FaPaperclip size={22} />

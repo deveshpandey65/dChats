@@ -42,17 +42,17 @@ function App() {
         <img className="h-8 " src={logo} alt="logo" />
       </div>
       <div className="flex flex-row w-full h-full mb-2  relative overflow-hidden ">
-        <div className="w-[15%] md:w-[5%] sm:w-[7%] h-full flex flex-col justify-start pt-10 relative items-center">
-          <div onClick={() => navigate('/add-friend')} className="mb-4 text-white cursor-pointer text-center rounded-full hover:bg-cyan-500">
+        <div className="w-[15%] md:w-[5%] sm:w-[7%] h-full flex flex-col justify-start pt-10 relative items-center ">
+          <div onClick={() => navigate('/add-friend')} className="mb-4 text-white cursor-pointer text-center rounded-full hover:bg-cyan-500 transition-all transform hover:scale-125">
             <img className="h-10 w-10" src="https://cdn-icons-png.freepik.com/256/1705/1705968.png?semt=ais_hybrid" />
           </div>
 
-          <div onClick={() => navigate('/chat')} className="mb-8 text-white cursor-pointer text-center rounded-full hover:bg-cyan-500">
+          <div onClick={() => navigate('/chat')} className="mb-8 text-white cursor-pointer text-center rounded-full hover:bg-cyan-500 transition-all transform hover:scale-125">
             <img className="h-10 w-10" src="https://cdn-icons-png.flaticon.com/512/9374/9374926.png" />
           </div>
 
           <div className="flex-grow"></div>
-          <div onClick={() => navigate('/profile')} className="mb-8 text-white cursor-pointer text-center justify-end rounded-full hover:bg-cyan-500 mt-auto">
+          <div onClick={() => navigate('/profile')} className="mb-8 text-white cursor-pointer text-center justify-end rounded-full hover:bg-cyan-500 mt-auto transition-all transform hover:scale-125 ">
             <img className="h-10 w-10" src="https://cdn-icons-png.freepik.com/256/1176/1176374.png?semt=ais_hybrid" />
           </div>
         </div>

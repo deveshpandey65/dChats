@@ -10,6 +10,7 @@
     "@testing-library/user-event": "^13.5.0",
     "ably": "^2.6.3",
     "axios": "^1.7.9",
+    "framer-motion": "^12.4.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",

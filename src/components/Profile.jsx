@@ -1,122 +1,167 @@
+import userEvent from "@testing-library/user-event";
+import axios from "axios";
 import React, { useState, useEffect } from "react";
+import { FiEdit } from "react-icons/fi";
 
 export default function Profile() {
-    const [user, setUser] = useState({
-        profilePic: "https://static-00.iconduck.com/assets.00/profile-default-icon-512x511-v4sw4m29.png", 
-        name: "John Doe",
-        email: "johndoe@example.com",
-        about: "Hello! I am a software developer.",
-    });
-
-    const [newAbout, setNewAbout] = useState(user.about);
+    const [user, setUser] = useState({});
     const [selectedFile, setSelectedFile] = useState(null);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditingEmail, setIsEditingEmail] = useState(false);
+    const [isEditingAbout, setIsEditingAbout] = useState(false);
+    const [newEmail, setNewEmail] = useState("");
+    const [newAbout, setNewAbout] = useState("");
+    const [showEditOptions, setShowEditOptions] = useState(false);
 
     useEffect(() => {
-        // Fetch user data from API or local storage (for now using dummy data)
-        const storedUser = JSON.parse(localStorage.getItem("userProfile"));
-        if (storedUser) {
-            setUser(storedUser);
-            setNewAbout(storedUser.about);
-        }
+        axios.get(`https://dchats.netlify.app/api/profile/get-profile?userId=${localStorage.getItem('userId')}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        })
+            .then(response => {
+                setUser(response.data);
+                setNewEmail(response.data.email);
+                setNewAbout(response.data.about);
+            })
+            .catch(error => console.error("Error fetching profile:", error));
     }, []);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            const imageUrl = URL.createObjectURL(file);
-            setSelectedFile(imageUrl);
+            setSelectedFile(file);
+            uploadFile(file);
         }
     };
 
-    const handleSaveProfilePic = () => {
-        if (selectedFile) {
-            setUser({ ...user, profilePic: selectedFile });
-            localStorage.setItem(
-                "userProfile",
-                JSON.stringify({ ...user, profilePic: selectedFile })
-            );
-            setSelectedFile(null);
+    const uploadFile = async (file) => {
+        try {
+            const formData = new FormData();
+            const userId = localStorage.getItem("userId")
+            formData.append("profile", file);
+            formData.append("userId", userId)
+
+            await axios.post("https://dchats.netlify.app/api/profile/profile-img", formData, userId, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    "Authorization": localStorage.getItem("token"),
+                },
+            })
+                .then(response => {
+                    console.log(response.data)
+                    setUser((prevUser) => ({ ...prevUser, profilepic: response.data.filePath }));
+                    
+                })
+                .catch(error => console.error("Error uploading file:", error));
+
+
+
+            // 🔥 Update the user state with new profile image
+            // setUser((prevUser) => ({
+            //     ...prevUser,
+            //     profilepic: response.data.filePath, // Update with new profile pic URL
+            // }));
+        } catch (error) {
+            console.error("Upload Failed:", error);
         }
+    };
+
+
+    const handleSaveEmail = () => {
+        setUser({ ...user, email: newEmail });
+        setIsEditingEmail(false);
     };
 
     const handleSaveAbout = () => {
-        setUser({ ...user, about: newAbout });
-        localStorage.setItem(
-            "userProfile",
-            JSON.stringify({ ...user, about: newAbout })
-        );
-        setIsEditing(false);
+        axios.post("https://dchats.netlify.app/api/profile/setabout",{ about: newAbout, userId: localStorage.getItem('userId') },
+            {
+                headers: { "Authorization": localStorage.getItem("token") },
+            }
+        )
+            .then(response => {console.log(response.data)
+                setIsEditingAbout(false);
+                setUser((prevUser) => ({ ...prevUser, about: newAbout }));
+            })
+            .catch(error => console.error("Error updating about:", error));
+
+        
     };
 
     return (
-        <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-md rounded-lg">
+        <div className="w-fit mx-auto mt-10 p-6 bg-slate-300 shadow-md rounded-lg transition-all transform hover:scale-105 hover:shadow-2xl">
             <h2 className="text-2xl font-bold text-center mb-4">Profile</h2>
-
-            {/* Profile Picture */}
-            <div className="flex flex-col items-center">
-                <img
-                    src={selectedFile || user.profilePic}
-                    alt="Profile"
-                    className="w-32 h-32 rounded-full border border-gray-300 shadow-md"
-                />
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="mt-2 text-sm"
-                />
-                {selectedFile && (
-                    <button
-                        onClick={handleSaveProfilePic}
-                        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                        Save Profile Picture
-                    </button>
-                )}
+            <div className="relative flex flex-col items-center">
+                <div
+                    className="relative w-32 h-32 rounded-full group"
+                    onMouseEnter={() => setShowEditOptions(true)}
+                    onMouseLeave={() => setShowEditOptions(false)}
+                    onClick={() => document.getElementById("fileInput").click()}
+                >
+                    <img
+                        src={user.profilepic}
+                        alt="Profile"
+                        className="w-32 h-32 rounded-full border border-gray-300 shadow-md object-cover"
+                    />
+                    {showEditOptions && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full cursor-pointer">
+                            <FiEdit className="text-white text-2xl" />
+                        </div>
+                    )}
+                    <input
+                        id="fileInput"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                    />
+                </div>
             </div>
 
-            {/* User Details */}
-            <div className="mt-6">
-                <p>
-                    <strong>Name:</strong> {user.name}
-                </p>
-                <p>
-                    <strong>Email:</strong> {user.email}
-                </p>
-                <p>
-                    <strong>About:</strong>
-                </p>
+            <div className="mt-6 flex flex-col items-center">
+                <h2 className="text-2xl mb-2 font-bold">{user.name}</h2>
 
-                {/* Edit About Section */}
-                {isEditing ? (
-                    <div>
-                        <textarea
+                <div className="flex items-center space-x-2">
+                    <strong>Email:</strong>
+                    {isEditingEmail ? (
+                        <input
+                            type="email"
+                            value={newEmail}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            onBlur={handleSaveEmail}
+                            autoFocus
+                            className="border-2 border-gray-300 p-1 rounded"
+                        />
+                    ) : (
+                        <span className="flex items-center">
+                            {user.email}
+
+                        </span>
+                    )}
+                </div>
+
+                <div className="mt-2 flex items-center space-x-2">
+                    <strong>About:</strong>
+                    {isEditingAbout ? (
+                        <input
+                            type="text"
                             value={newAbout}
                             onChange={(e) => setNewAbout(e.target.value)}
-                            className="w-full p-2 border rounded mt-2"
+                            onBlur={handleSaveAbout}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") handleSaveAbout();  
+                            }}
+                            autoFocus
+                            className="border-2 border-gray-300 p-1 rounded"
                         />
-                        <button
-                            onClick={handleSaveAbout}
-                            className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                            Save
-                        </button>
-                    </div>
-                ) : (
-                    <p className="mt-2">{user.about}</p>
-                )}
+                    ) : (
+                        <span className="flex items-center">
+                            {user.about}
+                            <FiEdit
+                                className="ml-2 cursor-pointer text-gray-500 hover:text-gray-800"
+                                onClick={() => setIsEditingAbout(true)}
+                            />
+                        </span>
+                    )}
+                </div>
             </div>
-
-            {/* Edit Button */}
-            {!isEditing && (
-                <button
-                    onClick={() => setIsEditing(true)}
-                    className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                >
-                    Edit About
-                </button>
-            )}
         </div>
     );
 }
