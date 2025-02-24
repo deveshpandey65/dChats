@@ -13,7 +13,7 @@ export default function Profile() {
     const [showEditOptions, setShowEditOptions] = useState(false);
 
     useEffect(() => {
-        axios.get(`https://dchats.netlify.app/api/profile/get-profile?userId=${localStorage.getItem('userId')}`, {
+        axios.get(`http://localhost:8888/api/profile/get-profile?userId=${localStorage.getItem('userId')}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
             .then(response => {
@@ -39,16 +39,15 @@ export default function Profile() {
             formData.append("profile", file);
             formData.append("userId", userId)
 
-            await axios.post("https://dchats.netlify.app/api/profile/profile-img", formData, userId, {
+            await axios.post("http://localhost:8888/api/profile/profile-img", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
-                    "Authorization": localStorage.getItem("token"),
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`,
                 },
             })
                 .then(response => {
-                    console.log(response.data)
-                    setUser((prevUser) => ({ ...prevUser, profilepic: response.data.filePath }));
-                    
+                    console.log(response.data);
+                    setUser(prevUser => ({ ...prevUser, profilepic: response.data.filePath }));
                 })
                 .catch(error => console.error("Error uploading file:", error));
 
@@ -71,7 +70,7 @@ export default function Profile() {
     };
 
     const handleSaveAbout = () => {
-        axios.post("https://dchats.netlify.app/api/profile/setabout",{ about: newAbout, userId: localStorage.getItem('userId') },
+        axios.post("http://localhost:8888/api/profile/setabout",{ about: newAbout, userId: localStorage.getItem('userId') },
             {
                 headers: { "Authorization": localStorage.getItem("token") },
             }
@@ -146,7 +145,7 @@ export default function Profile() {
                             onChange={(e) => setNewAbout(e.target.value)}
                             onBlur={handleSaveAbout}
                             onKeyDown={(e) => {
-                                if (e.key === "Enter") handleSaveAbout();  
+                                if (e.key === "Enter") handleSaveAbout();  // Save on Enter key press
                             }}
                             autoFocus
                             className="border-2 border-gray-300 p-1 rounded"

@@ -42,6 +42,7 @@ export default function DetailChat({ person }) {
         } catch (error) {
             console.error("Error fetching messages:", error);
             setMessages([]);
+            setLoading(false)
         }
     };
 
@@ -113,7 +114,7 @@ export default function DetailChat({ person }) {
                     <div className="w-full flex items-center justify-between bg-white h-14 border-b-2 border-gray-200 px-4">
                         <div className="flex items-center">
                             <div className="flex items-center rounded-full overflow-hidden">
-                                <img className="h-10 rounded-full mr-4" src={person.img} alt="Profile" />
+                                <img className="h-12 w-12 rounded-full mr-4" src={person.img} alt="Profile" />
                             </div>
                             <h1 className="font-semibold text-xl">{person.name}</h1>
                         </div>
