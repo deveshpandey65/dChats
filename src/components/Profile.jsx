@@ -2,6 +2,7 @@ import userEvent from "@testing-library/user-event";
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { FiEdit } from "react-icons/fi";
+import Loading from "./Loading";
 
 export default function Profile() {
     const [user, setUser] = useState({});
@@ -11,18 +12,21 @@ export default function Profile() {
     const [newEmail, setNewEmail] = useState("");
     const [newAbout, setNewAbout] = useState("");
     const [showEditOptions, setShowEditOptions] = useState(false);
-
+    const [loading,setloading]=useState(false)
     useEffect(() => {
-        axios.get(`http://localhost:8888/api/profile/get-profile?userId=${localStorage.getItem('userId')}`, {
+        setloading(true)
+        axios.get(`https://dchats.netlify.app/api/profile/get-profile?userId=${localStorage.getItem('userId')}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         })
             .then(response => {
                 setUser(response.data);
                 setNewEmail(response.data.email);
                 setNewAbout(response.data.about);
+                setloading(false)
             })
             .catch(error => console.error("Error fetching profile:", error));
-    }, []);
+       
+        }, []);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
@@ -39,7 +43,7 @@ export default function Profile() {
             formData.append("profile", file);
             formData.append("userId", userId)
 
-            await axios.post("http://localhost:8888/api/profile/profile-img", formData, {
+            await axios.post("https://dchats.netlify.app/api/profile/profile-img", formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                     "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -70,7 +74,7 @@ export default function Profile() {
     };
 
     const handleSaveAbout = () => {
-        axios.post("http://localhost:8888/api/profile/setabout",{ about: newAbout, userId: localStorage.getItem('userId') },
+        axios.post("https://dchats.netlify.app/api/profile/setabout",{ about: newAbout, userId: localStorage.getItem('userId') },
             {
                 headers: { "Authorization": localStorage.getItem("token") },
             }
@@ -85,7 +89,8 @@ export default function Profile() {
     };
 
     return (
-        <div className="w-fit mx-auto mt-10 p-6 bg-slate-300 shadow-md rounded-lg transition-all transform hover:scale-105 hover:shadow-2xl">
+        
+        loading ? <Loading /> : <div className="w-fit mx-auto mt-10 p-6 bg-slate-300 shadow-md rounded-lg transition-all transform hover:scale-105 hover:shadow-2xl">
             <h2 className="text-2xl font-bold text-center mb-4">Profile</h2>
             <div className="relative flex flex-col items-center">
                 <div
@@ -162,5 +167,7 @@ export default function Profile() {
                 </div>
             </div>
         </div>
+        
+        
     );
 }

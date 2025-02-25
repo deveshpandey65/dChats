@@ -7,10 +7,15 @@ import axios from "axios";
 function App() {
   const [myUserId, setMyUserId] = useState(null);
   const navigate = useNavigate();
+  let profilePic = localStorage.getItem('userProfilePic') ? localStorage.getItem('userProfilePic') : "https://cdn-icons-png.freepik.com/256/1176/1176374.png?semt=ais_hybrid"
+  useEffect(()=>{
+    profilePic = localStorage.getItem('userProfilePic') ? localStorage.getItem('userProfilePic') : "https://cdn-icons-png.freepik.com/256/1176/1176374.png?semt=ais_hybrid";
+
+  })
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
+    
     if (!token) {
       alert("Please login first");
       navigate("/login");
@@ -22,7 +27,6 @@ function App() {
     })
       .then((response) => {
         if (response.status === 201) {
-          console.log(response.data);
           setMyUserId(response.data.userId);
           localStorage.setItem("userId", response.data.userId);
         } else {
@@ -34,7 +38,7 @@ function App() {
         console.log(error);
         navigate('/login');
       });
-  }, []); // ✅ Runs only once on mount
+  }, []);
 
   return (
     <div className="bg-cyan-600 h-full md:h-screen w-screen flex flex-col fixed z-0 overflow-hidden">
@@ -48,12 +52,12 @@ function App() {
           </div>
 
           <div onClick={() => navigate('/chat')} className="mb-8 text-white cursor-pointer text-center rounded-full hover:bg-cyan-500 transition-all transform hover:scale-125">
-            <img className="h-10 w-10" src="https://cdn-icons-png.flaticon.com/512/9374/9374926.png" />
+            <img className="h-10 w-10" src='https://cdn-icons-png.flaticon.com/512/9374/9374926.png' />
           </div>
 
           <div className="flex-grow"></div>
           <div onClick={() => navigate('/profile')} className="mb-8 text-white cursor-pointer text-center justify-end rounded-full hover:bg-cyan-500 mt-auto transition-all transform hover:scale-125 ">
-            <img className="h-10 w-10" src="https://cdn-icons-png.freepik.com/256/1176/1176374.png?semt=ais_hybrid" />
+            <img className="h-10 w-10 rounded-full" src={profilePic} />
           </div>
         </div>
 
