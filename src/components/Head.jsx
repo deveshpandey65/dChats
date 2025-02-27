@@ -66,7 +66,7 @@ export default function Head() {
       setSelectedFriends([]);
       setGroupName("");
       setSearchTerm("");
-      navigate(0);
+      navigate('/', { replace: true });
       alert('Group Created')
     } catch (error) {
       console.error("Error creating group:", error);
