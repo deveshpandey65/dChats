@@ -3,8 +3,10 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { FiEdit } from "react-icons/fi";
 import Loading from "./Loading";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
+    const navigate=useNavigate()
     const [user, setUser] = useState({});
     const [selectedFile, setSelectedFile] = useState(null);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
@@ -87,6 +89,11 @@ export default function Profile() {
 
         
     };
+    const handleLogout=()=>{
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        navigate('/login')
+    }
 
     return (
         
@@ -164,6 +171,9 @@ export default function Profile() {
                             />
                         </span>
                     )}
+                </div>
+                <div className="mt-2 flex items-center space-x-2">
+                    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={handleLogout}>Logout</button>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ import Head from "../components/Head";
 import SearchInput from '../components/Search';
 import axios from 'axios';
 import Loading from './Loading';
+import { useNavigate } from 'react-router-dom';
 
 export default function Message() {
     const [chatsperson,setchatsperson]=useState([])
@@ -12,6 +13,7 @@ export default function Message() {
     const [loading,setloading]=useState(false)
     const originalChatPersons = useRef([]);
     const [search, setSearch] = useState(false)
+    const navigate=useNavigate()
     useEffect(
         () => {
             const getFriends = async () => {
@@ -25,12 +27,12 @@ export default function Message() {
                     .then(response => {
                         setchatsperson(response.data.friends)
                         originalChatPersons.current = response.data.friends;
-                        console.log(response.data.friends)
                         setloading(false)
                     })
                     .catch(
                         error => {
                             console.log(error)
+                            setloading(false)
                         }
                     )}
                     getFriends()
@@ -62,58 +64,65 @@ export default function Message() {
         }
          className="w-1/2 xl:w-1/3 sm:w-1/2 h-full flex flex-col border-r-2 border-gray-200  rounded-tl-xl p-2">
           <Head />
-              <SearchInput setchatsperson={setchatsperson} originalChatPersons={originalChatPersons.current} />
-              {loading ? <div><Loading/></div> : <div className="flex flex-col h-full overflow-y-scroll">
-                  {
-                      chatsperson.map((person, index) => (
-                          <div
-                              key={person.id}
-                              onClick={() => detailShow(person)}
-                              className="flex flex-row items-center w-full  h-16 p-2 border-b-2 border-gray-200 hover:bg-gray-200 ">
-                              
-                              <div className="flex min-w-12 min-h-12 max-h-12 max-w-12 mr-2 flex-row items-center">
-                                  <img
-                                      className="min-w-12 min-h-12 max-h-12 max-w-12 rounded-full"
-                                      src={person.img}
-                                      alt="profile"
-                                  />
-                              </div>
+              {
+                  loading?<Loading/>:chatsperson.length>0 ? <><SearchInput setchatsperson={setchatsperson} originalChatPersons={originalChatPersons.current} />
+                      {loading ? <div><Loading /></div> : <div className="flex flex-col h-full overflow-y-scroll">
+                          {
+                              chatsperson.map((person, index) => (
+                                  <div
+                                      key={person.id}
+                                      onClick={() => detailShow(person)}
+                                      className="flex flex-row items-center w-full  h-16 p-2 border-b-2 border-gray-200 hover:bg-gray-200 ">
 
-                                <div className="flex flex-col w-full overflow-hidden">
-                                  <div className="flex items-center h-6 justify-between">
-                                        <div className='flex h-6 max-w-[50%] justify-start truncate  overflow-hidden whitespace-nowrap  '>
-                                          <h1 className="  font-semibold truncate  overflow-hidden whitespace-nowrap">
-                                              {person.name}
-                                          </h1>
-                                        </div>
-                                        <div className='flex justify-end w-16 h-6 mr-2 truncate  overflow-hidden whitespace-nowrap  '>
-                                          <span className="text-gray-500 font-semibold text-sm ">
-                                              {formatTime(person.lastMessageTime)}
-                                          </span>
-                                        </div>
-                                  </div>
+                                      <div className="flex min-w-12 min-h-12 max-h-12 max-w-12 mr-2 flex-row items-center">
+                                          <img
+                                              className="min-w-12 min-h-12 max-h-12 max-w-12 rounded-full"
+                                              src={person.img}
+                                              alt="profile"
+                                          />
+                                      </div>
 
-                                  <div className="flex items-center h-6 justify-between">
-                                      <div className='flex h-6 max-w-[50%] justify-start truncate  overflow-hidden whitespace-nowrap  '>
-                                          <h1 className=" text-zinc-700  truncate  overflow-hidden whitespace-nowrap">
-                                              { person.lastMessage.message}
-                                          </h1>
-                                      </div>
-                                      <div className='flex justify-start w-16 h-6 mr-2 truncate  overflow-hidden whitespace-nowrap  '>
-                                          <span className="text-gray-500 font-semibold text-sm truncate  overflow-hidden whitespace-nowrap ">
-                                              {person.lastSeen}
-                                          </span>
-                                      </div>
-                                      {/* <span className="text-gray-400 truncate max-w-[50%] overflow-hidden whitespace-nowrap">{person.lastSeen}</span>
+                                      <div className="flex flex-col w-full overflow-hidden">
+                                          <div className="flex items-center h-6 justify-between">
+                                              <div className='flex h-6 max-w-[50%] justify-start truncate  overflow-hidden whitespace-nowrap  '>
+                                                  <h1 className="  font-semibold truncate  overflow-hidden whitespace-nowrap">
+                                                      {person.name}
+                                                  </h1>
+                                              </div>
+                                              <div className='flex justify-end w-16 h-6 mr-2 truncate  overflow-hidden whitespace-nowrap  '>
+                                                  <span className="text-gray-500 font-semibold text-sm ">
+                                                      {formatTime(person.lastMessageTime)}
+                                                  </span>
+                                              </div>
+                                          </div>
+
+                                          <div className="flex items-center h-6 justify-between">
+                                              <div className='flex h-6 max-w-[50%] justify-start truncate  overflow-hidden whitespace-nowrap  '>
+                                                  <h1 className=" text-zinc-700  truncate  overflow-hidden whitespace-nowrap">
+                                                      {person.lastMessage.message}
+                                                  </h1>
+                                              </div>
+                                              <div className='flex justify-start w-16 h-6 mr-2 truncate  overflow-hidden whitespace-nowrap  '>
+                                                  <span className="text-gray-500 font-semibold text-sm truncate  overflow-hidden whitespace-nowrap ">
+                                                      {person.lastSeen}
+                                                  </span>
+                                              </div>
+                                              {/* <span className="text-gray-400 truncate max-w-[50%] overflow-hidden whitespace-nowrap">{person.lastSeen}</span>
                                       <br></br>
                                       <span>{person.lastMessage.message}</span> */}
+                                          </div>
+                                      </div>
                                   </div>
-                               </div>
-                          </div>
-                      ))
-                  }
+                              ))
+                          }
 
-              </div>}
+                      </div>}</>:<>
+                      <div className="flex flex-col items-center justify-center ">
+                      <h1 className="text-3xl font-bold text-gray-500">No Friends Found</h1>
+                      <button className=" text-black font-bold py-2 px-4 rounded" onClick={()=>navigate('/add-friend')}> Click to Add Friend</button>
+                      </div>
+                      </>
+              }
        </div>
         <div className="w-1/2 xl:w-2/3 sm:w-1/2 h-full flex flex-col overflow-hidden  bg-white" >
               <Detailchat person={personD} setSearch={setSearch} search={search} userCard={userCard} setUserCard={setUserCard} />

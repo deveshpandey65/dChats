@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import Loading from "./Loading";
 
 export default function AddFriend() {
   const [search, setSearch] = useState("");
@@ -8,6 +10,7 @@ export default function AddFriend() {
   const [loading, setLoading] = useState(false);
   const myUserId = localStorage.getItem("userId");
   const searchTimeoutRef = useRef(null);
+  const navigate=useNavigate()
 
   useEffect(() => {
     
@@ -37,6 +40,7 @@ export default function AddFriend() {
     setLoading(true);
     try {
       const response = await axios.get(
+        
         `https://dchats.netlify.app/api/friend/users?search=${search}`,
         {
           headers: {
@@ -53,6 +57,7 @@ export default function AddFriend() {
 
   const handleAddFriend = async (friendId) => {
     try {
+      setLoading(true)
       await axios.post(
         "https://dchats.netlify.app/api/friend/add-friend",
         { userId: myUserId, friendId },
@@ -63,6 +68,9 @@ export default function AddFriend() {
         }
       );
       alert("Friend added!");
+      navigate('/chat')
+
+      setLoading(false)
     } catch (error) {
       console.error("Error adding friend:", error);
     }
@@ -119,7 +127,7 @@ export default function AddFriend() {
       )}
 
       {selectedUser && (
-        <div className="mt-4 p-4 bg-gray-100 rounded shadow-md">
+        loading ? <Loading /> : <div className="mt-4 p-4 bg-gray-100 rounded shadow-md">
           <h2 className="text-lg font-semibold">Selected User</h2>
           <p>Name: {selectedUser.name}</p>
           <p>Email: {selectedUser.email}</p>

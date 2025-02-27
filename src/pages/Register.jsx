@@ -1,6 +1,7 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Loading from "../components/Loading";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -8,59 +9,83 @@ export default function Register() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [phone, setPhone] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (event) => {
-        event.preventDefault(); // Prevent page reload
+    useEffect(() => {
+        const verifyToken = async () => {
+            const token = localStorage.getItem("token");
+            if (token) {
+                setLoading(true);
+                try {
+                    const response = await axios.post(
+                        "https://dchats.netlify.app/api/auth/verify",
+                        {},
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    if (response.status === 201) {
+                        alert("Already logged in");
+                        navigate("/");
+                    }
+                } catch (error) {
+                    console.error("Token verification failed:", error);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+        verifyToken();
+    }, []); // ✅ Runs only once on mount
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setLoading(true);
 
         if (name && email && password && phone) {
-            axios
-                .post("https://dchats.netlify.app/api/auth/register", {
-                    name,
-                    email,
-                    password,
-                    phone,
-                })
-                .then((response) => {
-                    console.log(response.data);
-                    alert("Registration Success");
-                    navigate("/login");
-                })
-                .catch((error) => {
-                    console.log(error.response?.data || error.message);
-                    alert("Registration Failed");
-                });
+            try {
+                const response = await axios.post(
+                    "https://dchats.netlify.app/api/auth/register",
+                    { name, email, password, phone }
+                );
+                console.log(response.data);
+                alert("Registration Success");
+                navigate("/login");
+            } catch (error) {
+                console.error("Registration Error:", error.response?.data || error.message);
+                alert("Registration Failed");
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            alert("Please fill all fields.");
+            setLoading(false);
         }
     };
 
-    return (
+    return loading ? (
+        <Loading />
+    ) : (
         <div className="flex flex-col justify-center items-center h-screen w-screen">
             <div className="bg-gray-300 p-8 rounded-lg shadow-md w-96 flex flex-col items-center">
                 <h1 className="text-4xl font-bold mb-4">Registration</h1>
                 <form onSubmit={handleSubmit} className="space-y-3 w-full">
                     <div className="flex flex-col space-y-1 w-full">
-                        <label className="text-sm text-gray-600" htmlFor="name">
-                            Name
-                        </label>
+                        <label className="text-sm text-gray-600" htmlFor="name">Name</label>
                         <input
                             className="py-2 px-4 rounded-lg border border-gray-300"
                             type="text"
                             id="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            name="name"
                             placeholder="Enter Your Name"
                             required
                         />
                     </div>
                     <div className="flex flex-col space-y-1 w-full">
-                        <label className="text-sm text-gray-600" htmlFor="email">
-                            Email
-                        </label>
+                        <label className="text-sm text-gray-600" htmlFor="email">Email</label>
                         <input
                             className="py-2 px-4 rounded-lg border border-gray-300"
                             type="email"
                             id="email"
-                            name="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Enter Your Email"
@@ -68,14 +93,11 @@ export default function Register() {
                         />
                     </div>
                     <div className="flex flex-col space-y-1 w-full">
-                        <label className="text-sm text-gray-600" htmlFor="phone">
-                            Mobile
-                        </label>
+                        <label className="text-sm text-gray-600" htmlFor="phone">Mobile</label>
                         <input
                             className="py-2 px-4 rounded-lg border border-gray-300"
                             type="text"
                             id="phone"
-                            name="phone"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="Enter Your Number"
@@ -85,14 +107,11 @@ export default function Register() {
                         />
                     </div>
                     <div className="flex flex-col space-y-1">
-                        <label className="text-sm text-gray-600" htmlFor="password">
-                            Password
-                        </label>
+                        <label className="text-sm text-gray-600" htmlFor="password">Password</label>
                         <input
                             className="py-2 px-4 rounded-lg border border-gray-300"
                             type="password"
                             id="password"
-                            name="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Enter Your Password"

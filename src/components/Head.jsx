@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Loading from './Loading';
 
 export default function Head() {
   const navigate = useNavigate();
@@ -11,25 +12,27 @@ export default function Head() {
   const [searchTerm, setSearchTerm] = useState("");
   const [groupName, setGroupName] = useState("");
   const [showGroupNameInput, setShowGroupNameInput] = useState(false);
+  const [loading, setLoading] = useState(false);
   const listRef = useRef(null);
 
   const userId = localStorage.getItem("userId"); // Get self user ID
 
-  const handleClick = () => {
-    axios.post(
-      'https://dchats.netlify.app/api/message/create-group/searchMembers',
-      { userId },
-      { headers: { 'Authorization': localStorage.getItem("token") } }
-    )
-      .then(response => {
-        const friendsList = response.data.friends.filter(friend => friend._id !== userId); // Exclude self
-        setFriends(friendsList);
-        setFilteredFriends(friendsList);
-        setShowList(true);
-      })
-      .catch(error => {
-        console.error("Error fetching friends:", error);
-      });
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        'https://dchats.netlify.app/api/message/create-group/searchMembers',
+        { userId },
+        { headers: { 'Authorization': localStorage.getItem("token") } }
+      );
+      const friendsList = response.data.friends.filter(friend => friend._id !== userId);
+      setFriends(friendsList);
+      setFilteredFriends(friendsList);
+      setShowList(true);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+    }
+    setLoading(false);
   };
 
   const handleCheckboxChange = (friendId) => {
@@ -47,29 +50,28 @@ export default function Head() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!groupName.trim()) return;
+    setLoading(true);
 
     const groupMembers = [userId, ...selectedFriends]; // Ensure self is included
-    console.log(groupName, groupMembers);
-
-    axios.post(
-      'https://dchats.netlify.app/api/message/create-group',
-      { participantes: groupMembers, groupId: groupName },
-      { headers: { 'Authorization': localStorage.getItem("token") } }
-    )
-      .then(response => {
-        console.log("Group created successfully:", response.data);
-        setShowList(false);
-        setShowGroupNameInput(false);
-        setSelectedFriends([]);
-        setGroupName("");
-        setSearchTerm("");
-        navigate(0);
-      })
-      .catch(error => {
-        console.error("Error creating group:", error);
-      });
+    try {
+      await axios.post(
+        'https://dchats.netlify.app/api/message/create-group',
+        { participantes: groupMembers, groupId: groupName },
+        { headers: { 'Authorization': localStorage.getItem("token") } }
+      );
+      setShowList(false);
+      setShowGroupNameInput(false);
+      setSelectedFriends([]);
+      setGroupName("");
+      setSearchTerm("");
+      navigate(0);
+      alert('Group Created')
+    } catch (error) {
+      console.error("Error creating group:", error);
+    }
+    setLoading(false);
   };
 
   const handleSearchChange = (e) => {
@@ -94,23 +96,22 @@ export default function Head() {
 
     if (showList || showGroupNameInput) {
       document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showList, showGroupNameInput]);
 
   return (
-    <div className=' flex flex-col w-full'>
+    <div className='flex flex-col w-full'>
       <div className="flex flex-row items-center justify-between ml-2 mr-2 h-12">
         <h1 className="text-lg font-bold">Chats</h1>
         <h1 onClick={handleClick} className="text-lg font-semibold cursor-pointer">Create Group</h1>
       </div>
 
-      {showList && !showGroupNameInput && (
+      {loading && <Loading />}
+
+      {!loading && showList && !showGroupNameInput && (
         <div ref={listRef} className="z-10 absolute top-14 left-0 right-0 bg-white shadow-md rounded-lg p-4 max-w-md mx-auto">
           <h2 className="text-lg font-semibold mb-2">Select Members</h2>
 
@@ -151,8 +152,8 @@ export default function Head() {
         </div>
       )}
 
-      {showGroupNameInput && (
-        <div ref={listRef} className=" z-10 absolute top-20 left-0 right-0 bg-white shadow-md rounded-lg p-4 max-w-md mx-auto">
+      {!loading && showGroupNameInput && (
+        <div ref={listRef} className="z-10 absolute top-20 left-0 right-0 bg-white shadow-md rounded-lg p-4 max-w-md mx-auto">
           <h2 className="text-lg font-semibold mb-2">Enter Group Name</h2>
 
           <input
